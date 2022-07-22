@@ -1,4 +1,7 @@
 use crate::terminal::Terminal;
+use crate::Doc;
+use crate::Row;
+use std::env;
 use termion::event::Key;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -8,6 +11,7 @@ fn die(err: std::io::Error) {
     panic!("{}", err);
 }
 
+#[derive(Default)]
 pub struct Position {
     pub x: usize,
     pub y: usize,
@@ -17,14 +21,23 @@ pub struct Editor {
     should_quit: bool,
     terminal: Terminal,
     cursor: Position,
+    document: Doc,
 }
 
 impl Editor {
     pub fn default() -> Self {
+        let args : Vec<String> = env::args().collect();
+        let doc = if args.len() > 1 {
+            let filename = &args[1];
+            Doc::open(&filename).unwrap_or_default()
+        } else {
+            Doc::default()
+        };
         Self {
             should_quit: false,
             terminal: Terminal::default().expect("failed to initialize Terminal"),
-            cursor: Position { x: 0, y: 0 },
+            cursor: Position::default(),
+            document: doc,
         }
     }
     pub fn run(&mut self) {
@@ -81,11 +94,20 @@ impl Editor {
         println!("{}\r", welcome_message);
     }
 
+    fn draw_row(&self, row: &Row) {
+        let start = 0;
+        let end = self.terminal.size().width as usize;
+        let row = row.render(start, end);
+        println!("{}\r", row);
+    }
+
     fn draw_rows(&self) {
         let height = self.terminal.size().height;
-        for row in 0..height - 1 {
+        for row_index in 0..height - 1 {
             Terminal::clear_current_line();
-            if row == height / 3 {
+            if let Some(row) = self.document.row(row_index as usize) {
+                self.draw_row(row);
+            } else if self.document.is_empty() && row_index == height / 3 {
                 self.draw_welcome();
             } else {
                 println!("~\r");
