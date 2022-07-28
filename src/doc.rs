@@ -7,13 +7,12 @@ pub struct Doc {
 }
 
 impl Doc {
-    pub fn open(filename : &str) -> Result<Self, std::io::Error> {
-        let contents =  fs::read_to_string(filename)?;
+    pub fn open(filename: &str) -> Result<Self, std::io::Error> {
+        let contents = fs::read_to_string(filename)?;
         let mut rows = Vec::new();
-        for content in contents.lines(){
+        for content in contents.lines() {
             rows.push(Row::from(content));
         }
-        rows.push(Row::from("Hello, World"));
         Ok(Self { rows })
     }
     pub fn row(&self, index: usize) -> Option<&Row> {
@@ -22,5 +21,8 @@ impl Doc {
 
     pub fn is_empty(&self) -> bool {
         self.rows.is_empty()
+    }
+    pub fn len(&self) -> usize {
+        self.rows.len()
     }
 }
