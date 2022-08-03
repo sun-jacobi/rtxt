@@ -2,6 +2,7 @@ use crate::terminal::Terminal;
 use crate::Doc;
 use crate::Row;
 use std::env;
+//use colored::Colorize;
 use termion::event::Key;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -139,7 +140,7 @@ impl Editor {
     fn move_cursor(&mut self, key: Key) {
         let Position { mut y, mut x } = self.cursor;
         let height = self.document.len();
-        let width = if let Some(row) = self.document.row(y) {
+        let mut width = if let Some(row) = self.document.row(y) {
             row.len()
         } else {
             0
@@ -147,7 +148,7 @@ impl Editor {
         match key {
             Key::Up => y = y.saturating_sub(1),
             Key::Down => {
-                if y < height {
+                if y < height - 1 {
                     y = y.saturating_add(1)
                 }
             }
@@ -164,7 +165,14 @@ impl Editor {
             Key::End => x = width,
             _ => (),
         }
-
+        width = if let Some(row) = self.document.row(y) {
+            row.len()
+        } else {
+            0
+        };
+        if x > width {
+            x = width;
+        }
         self.cursor = Position { x, y };
     }
 }

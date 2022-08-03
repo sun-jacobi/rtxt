@@ -1,8 +1,26 @@
 #include<stdio.h> 
 
 int
-main()
-{
-    printf("Hello!\n");
-    return 0;
+main() {
+    printf("Hello!");printf("Hello!");printf("Hello!");printf("Hello!");printf("Hello!");
+    printf("Hello!");
+    printf("Hello!");
+    printf("Hello!");
+    printf("Hello!");
+    printf("Hello!");
+    printf("Hello!");
+    printf("Hello!");
+    printf("Hello!");
+    printf("Hello!");
+    printf("Hello!");
+    printf("Hello!");
+    printf("Hello!");
+    printf("Hello!");
+    printf("Hello!");
+    printf("Hello!");
+    printf("Hello!");
+    printf("Hello!");
+    printf("Hello!");
+    printf("Hello!");
+    printf("Hello!");
 }
