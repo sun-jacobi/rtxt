@@ -60,6 +60,10 @@ impl Editor {
         let pressed_key = Terminal::read_key()?;
         match pressed_key {
             Key::Ctrl('q') => self.should_quit = true,
+            Key::Char(c) => {
+                self.document.insert(&self.cursor, c);
+                self.move_cursor(Key::Right);
+            },
             Key::Up
             | Key::Down
             | Key::Left
@@ -148,7 +152,7 @@ impl Editor {
         match key {
             Key::Up => y = y.saturating_sub(1),
             Key::Down => {
-                if y < height - 1 {
+                if y < height{
                     y = y.saturating_add(1)
                 }
             }
