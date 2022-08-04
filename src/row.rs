@@ -5,14 +5,14 @@ use unicode_segmentation::UnicodeSegmentation;
 #[derive(Default)]
 pub struct Row {
     string: String,
-    len : usize,
+    len: usize,
 }
 
 impl From<&str> for Row {
     fn from(slice: &str) -> Self {
         let mut row = Self {
             string: String::from(slice),
-            len : 0,
+            len: 0,
         };
         row.update_len();
         row
@@ -27,13 +27,13 @@ impl Row {
         for grapheme in self.string[..]
             .graphemes(true)
             .skip(start)
-            .take(end - start) 
-        {   
+            .take(end - start)
+        {
             if grapheme == "\t" {
                 result.push_str("    ");
             } else {
                 result.push_str(grapheme);
-            }   
+            }
         }
         result
     }
@@ -44,7 +44,7 @@ impl Row {
         self.len == 0
     }
 
-    pub fn insert(&mut self, at : usize, c : char) {
+    pub fn insert(&mut self, at: usize, c: char) {
         if at >= self.len() {
             self.string.push(c);
         } else {
@@ -54,6 +54,20 @@ impl Row {
             result.push_str(&leftover);
             self.string = result;
         }
+        self.update_len();
+    }
+
+    pub fn delete(&mut self, at: usize) {
+        if at >= self.len() {
+            return;
+        }
+        let mut result = self.string[..].graphemes(true).take(at).collect::<String>();
+        let remainder = self.string[..]
+            .graphemes(true)
+            .skip(at + 1)
+            .collect::<String>();
+        result.push_str(&remainder);
+        self.string = result;
         self.update_len();
     }
 

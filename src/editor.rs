@@ -63,7 +63,10 @@ impl Editor {
             Key::Char(c) => {
                 self.document.insert(&self.cursor, c);
                 self.move_cursor(Key::Right);
-            },
+            }
+            // For mac
+            Key::Backspace => self.document.delete(&self.cursor),
+            Key::Delete => self.document.delete(&self.cursor),
             Key::Up
             | Key::Down
             | Key::Left
@@ -152,7 +155,7 @@ impl Editor {
         match key {
             Key::Up => y = y.saturating_sub(1),
             Key::Down => {
-                if y < height{
+                if y < height {
                     y = y.saturating_add(1)
                 }
             }
