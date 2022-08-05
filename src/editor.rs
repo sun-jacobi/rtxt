@@ -1,10 +1,10 @@
 use crate::terminal::Terminal;
 use crate::Doc;
 use crate::Row;
+
 use std::env;
 //use colored::Colorize;
 use termion::event::Key;
-
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn die(err: std::io::Error) {
@@ -64,9 +64,12 @@ impl Editor {
                 self.document.insert(&self.cursor, c);
                 self.move_cursor(Key::Right);
             }
-            // For mac
-            Key::Backspace => self.document.delete(&self.cursor),
-            Key::Delete => self.document.delete(&self.cursor),
+            Key::Backspace => {
+                if self.cursor.x > 0 || self.cursor.y > 0 {
+                    self.move_cursor(Key::Left);
+                    self.document.delete(&self.cursor);
+                }
+            }
             Key::Up
             | Key::Down
             | Key::Left
@@ -105,6 +108,8 @@ impl Editor {
             println!("Successfully Quit.\r")
         } else {
             self.draw_rows();
+            self.draw_status_bar();
+            self.draw_message_bar();
             Terminal::cursor_postion(&Position {
                 x: self.cursor.x.saturating_sub(self.offset.x),
                 y: self.cursor.y.saturating_sub(self.offset.y),
@@ -133,7 +138,7 @@ impl Editor {
 
     fn draw_rows(&self) {
         let height = self.terminal.size().height;
-        for row_index in 0..height - 1 {
+        for row_index in 0..height {
             Terminal::clear_current_line();
             if let Some(row) = self.document.row(row_index as usize + self.offset.y) {
                 self.draw_row(row);
@@ -159,7 +164,18 @@ impl Editor {
                     y = y.saturating_add(1)
                 }
             }
-            Key::Left => x = x.saturating_sub(1),
+            Key::Left => {
+                if x == 0 && y > 0 {
+                    y -= 1;
+                    if let Some(row) = self.document.row(y) {
+                        x = row.len();
+                    } else {
+                        x = 0;
+                    }
+                } else {
+                    x = x.saturating_sub(1);
+                }
+            }
             Key::Right => {
                 if x < width {
                     x = x.saturating_add(1)
@@ -181,5 +197,30 @@ impl Editor {
             x = width;
         }
         self.cursor = Position { x, y };
+    }
+
+    fn draw_status_bar(&self) {
+        let width = self.terminal.size().width as usize;
+        let mut status = match &self.document.filename {
+            Some(str) => {
+                let mut filename = str.clone();
+                filename.truncate(20);
+                format!("{} - {}", filename, self.document.len())
+            },
+            None => format!("{} - {}","[No Name]", self.document.len()),
+        };
+        if width > status.len() {
+            status.push_str(&"".repeat(width - status.len()));
+        }
+        status.truncate(width);
+        Terminal::set_bg_color();
+        Terminal::set_fg_color();
+        println!("{}\r", status);
+        Terminal::reset_fg_color();
+        Terminal::reset_bg_color();
+    }
+
+    fn draw_message_bar(&self) {
+        Terminal::clear_current_line();
     }
 }

@@ -49,7 +49,7 @@ impl Row {
             self.string.push(c);
         } else {
             let mut result = self.string[..].graphemes(true).take(at).collect::<String>();
-            let leftover = self.string[..].graphemes(true).collect::<String>();
+            let leftover = self.string[..].graphemes(true).skip(at).collect::<String>();
             result.push(c);
             result.push_str(&leftover);
             self.string = result;
@@ -69,6 +69,20 @@ impl Row {
         result.push_str(&remainder);
         self.string = result;
         self.update_len();
+    }
+    pub fn append(&mut self, other: &Self) {
+        self.string.push_str(&other.string);
+        self.update_len();
+    }
+    pub fn split(&mut self, at: usize) -> Self {
+        let remainder = self.string[..].graphemes(true).skip(at).collect::<String>();
+        let beginner = self.string[..].graphemes(true).take(at).collect::<String>();
+        self.string = beginner;
+        self.update_len();
+        Self::from(&remainder[..])
+    }
+    pub fn as_bytes(&self) -> &[u8] {
+        self.string.as_bytes()
     }
 
     fn update_len(&mut self) {
