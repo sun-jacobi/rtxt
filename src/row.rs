@@ -4,7 +4,7 @@ use unicode_segmentation::UnicodeSegmentation;
 
 #[derive(Default)]
 pub struct Row {
-    string: String,
+    pub string: String,
     len: usize,
 }
 
@@ -70,19 +70,10 @@ impl Row {
         self.string = result;
         self.update_len();
     }
-    pub fn append(&mut self, other: &Self) {
-        self.string.push_str(&other.string);
+
+    pub fn append(&mut self, rhs : &Row) {
+        self.string.push_str(&rhs.string);
         self.update_len();
-    }
-    pub fn split(&mut self, at: usize) -> Self {
-        let remainder = self.string[..].graphemes(true).skip(at).collect::<String>();
-        let beginner = self.string[..].graphemes(true).take(at).collect::<String>();
-        self.string = beginner;
-        self.update_len();
-        Self::from(&remainder[..])
-    }
-    pub fn as_bytes(&self) -> &[u8] {
-        self.string.as_bytes()
     }
 
     fn update_len(&mut self) {
