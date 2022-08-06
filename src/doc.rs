@@ -15,10 +15,26 @@ impl Doc {
         }
         Ok(Self { rows })
     }
+
     pub fn row(&self, index: usize) -> Option<&Row> {
         self.rows.get(index)
     }
+    fn insert_line(&mut self, at: &Position) {
+        if at.y > self.len() {
+            return;
+        } else if at.y == self.len() {
+            self.rows.push(Row::default());
+        } else {
+            let new = self.rows.get_mut(at.y).unwrap().split(at.x);
+            self.rows.insert(at.y + 1, new);
+        }
+    }
+
     pub fn insert(&mut self, at: &Position, c: char) {
+        if c == '\n' {
+            self.insert_line(at);
+            return;
+        }
         if at.y == self.len() {
             let mut row = Row::default();
             row.insert(0, c);
@@ -33,15 +49,14 @@ impl Doc {
         if at.y >= self.len() {
             return;
         }
-
         if at.x == self.row(at.y).unwrap().len() && at.y < self.len() - 1 {
-            let next = self.rows.remove(at.y+1);
+            let next = self.rows.remove(at.y + 1);
             let row = self.rows.get_mut(at.y).unwrap();
             row.append(&next);
-        } else  {
+        } else {
             let row = self.rows.get_mut(at.y).unwrap();
             row.delete(at.x);
-        }    
+        }
     }
 
     pub fn is_empty(&self) -> bool {

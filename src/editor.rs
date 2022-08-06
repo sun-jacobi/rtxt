@@ -60,10 +60,22 @@ impl Editor {
         let pressed_key = Terminal::read_key()?;
         match pressed_key {
             Key::Ctrl('q') => self.should_quit = true,
-            Key::Char(c) => {
-                self.document.insert(&self.cursor, c);
-                self.move_cursor(Key::Right);
-            }
+            Key::Char(c) => match c {
+                '\n' => {
+                    self.document.insert(&self.cursor, c);
+                    self.move_cursor(Key::Down);
+                }
+                '\t' => {
+                    self.document.insert(&self.cursor, c);
+                    for _ in 0..4 {
+                        self.move_cursor(Key::Right);
+                    }
+                }
+                _ => {
+                    self.document.insert(&self.cursor, c);
+                    self.move_cursor(Key::Right);
+                }
+            },
             // For mac
             Key::Backspace => {
                 self.move_cursor(Key::Left);

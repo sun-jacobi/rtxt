@@ -50,7 +50,11 @@ impl Row {
         } else {
             let mut result = self.string[..].graphemes(true).take(at).collect::<String>();
             let leftover = self.string[..].graphemes(true).skip(at).collect::<String>();
-            result.push(c);
+            if c == '\t' {
+                result.push_str(" ".repeat(4).as_str());
+            } else {
+                result.push(c);
+            }
             result.push_str(&leftover);
             self.string = result;
         }
@@ -71,12 +75,20 @@ impl Row {
         self.update_len();
     }
 
-    pub fn append(&mut self, rhs : &Row) {
+    pub fn append(&mut self, rhs: &Row) {
         self.string.push_str(&rhs.string);
         self.update_len();
     }
-
     fn update_len(&mut self) {
         self.len = self.string[..].graphemes(true).count();
+    }
+
+    pub fn split(&mut self, at: usize) -> Self {
+        let cons = self.string.graphemes(true).take(at).collect::<String>();
+        let tail = self.string.graphemes(true).skip(at).collect::<String>();
+        let next = " ".repeat(at) + tail.as_str();
+        self.string = cons;
+        self.update_len();
+        Self::from(next.as_str())
     }
 }
