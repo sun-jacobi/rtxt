@@ -47,7 +47,7 @@ impl Row {
     pub fn insert(&mut self, at: usize, c: char) {
         if at >= self.len() {
             self.string.push(c);
-        } else {                                                 
+        } else {
             let mut result = self.string[..].graphemes(true).take(at).collect::<String>();
             let leftover = self.string[..].graphemes(true).skip(at).collect::<String>();
             if c == '\t' {

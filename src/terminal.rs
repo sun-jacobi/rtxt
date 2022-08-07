@@ -1,9 +1,9 @@
+use crate::editor::Position;
 use std::io::{self, stdout, Write};
+use termion::color;
 use termion::event::Key;
 use termion::input::TermRead;
 use termion::raw::{IntoRawMode, RawTerminal};
-
-use crate::editor::Position;
 pub struct Size {
     pub width: u16,
     pub height: u16,
@@ -56,5 +56,17 @@ impl Terminal {
     }
     pub fn clear_current_line() {
         print!("{}", termion::clear::CurrentLine);
+    }
+    pub fn set_bg_color() {
+        print!("{}", color::Bg(color::Black));
+    }
+    pub fn reset_bg_color() {
+        print!("{}", color::Bg(color::Reset));
+    }
+    pub fn set_fg_color() {
+        print!("{}", color::Fg(color::LightYellow));
+    }
+    pub fn reset_fg_color() {
+        print!("{}", color::Fg(color::Reset));
     }
 }

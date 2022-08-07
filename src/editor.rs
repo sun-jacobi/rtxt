@@ -24,14 +24,22 @@ pub struct Editor {
     cursor: Position,
     offset: Position,
     document: Doc,
+    status: String,
 }
 
 impl Editor {
     pub fn default() -> Self {
         let args: Vec<String> = env::args().collect();
+        let mut status = String::from("Hello rtxt");
         let doc = if args.len() > 1 {
             let filename = &args[1];
-            Doc::open(&filename).unwrap_or_default()
+            match Doc::open(filename) {
+                Ok(doc) => doc,
+                Err(_) => {
+                    status = format!("Err: Failed to open {}", filename);
+                    Doc::default()
+                }
+            }
         } else {
             Doc::default()
         };
@@ -41,6 +49,7 @@ impl Editor {
             cursor: Position::default(),
             offset: Position::default(),
             document: doc,
+            status: status,
         }
     }
     pub fn run(&mut self) {
@@ -102,8 +111,8 @@ impl Editor {
         let width = self.terminal.size().width as usize;
         if y < self.offset.y {
             self.offset.y = y;
-        } else if y >= self.offset.y.saturating_add(height) {
-            self.offset.y = self.offset.y.saturating_add(height);
+        } else if y >= self.offset.y.saturating_add(height) - 2 {
+            self.offset.y = self.offset.y.saturating_add(height).saturating_sub(2);
         }
         if x <= self.offset.x + 3 {
             self.offset.x = x.saturating_sub(3);
@@ -120,6 +129,8 @@ impl Editor {
             println!("Successfully Quit.\r")
         } else {
             self.draw_rows();
+            self.draw_status_bar();
+            self.draw_message_bar();
             Terminal::cursor_postion(&Position {
                 x: self.cursor.x.saturating_sub(self.offset.x),
                 y: self.cursor.y.saturating_sub(self.offset.y),
@@ -148,7 +159,7 @@ impl Editor {
 
     fn draw_rows(&self) {
         let height = self.terminal.size().height;
-        for row_index in 0..height - 1 {
+        for row_index in 0..height - 2 {
             Terminal::clear_current_line();
             if let Some(row) = self.document.row(row_index as usize + self.offset.y) {
                 self.draw_row(row);
@@ -214,5 +225,35 @@ impl Editor {
             x = width;
         }
         self.cursor = Position { x, y };
+    }
+
+    fn draw_status_bar(&self) {
+        let Position { x, y } = self.cursor;
+        let width = self.terminal.size().width as usize;
+        let lines = self.document.len();
+        let filename = match &self.document.filename {
+            Some(file) => file.clone(),
+            None => String::from("No Name"),
+        };
+        let mut status = format!("{} {}", filename, lines);
+        let index = format!("{}, {}", x, y);
+        status.push_str(" ".repeat(width - status.len() - index.len()).as_str());
+        status.push_str(index.as_str());
+        Terminal::set_bg_color();
+        Terminal::set_fg_color();
+        print!("{}", status);
+        Terminal::reset_fg_color();
+        Terminal::reset_bg_color();
+    }
+
+    fn draw_message_bar(&self) {
+        let width = self.terminal.size().width as usize;
+        let len = self.status.len();
+        Terminal::set_bg_color();
+        Terminal::set_fg_color();
+        print!("{}", self.status);
+        print!("{}", " ".repeat(width - len));
+        Terminal::reset_fg_color();
+        Terminal::reset_bg_color();
     }
 }
