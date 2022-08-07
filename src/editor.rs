@@ -105,8 +105,8 @@ impl Editor {
         } else if y >= self.offset.y.saturating_add(height) {
             self.offset.y = self.offset.y.saturating_add(height);
         }
-        if x < self.offset.x {
-            self.offset.x = x;
+        if x <= self.offset.x + 3 {
+            self.offset.x = x.saturating_sub(3);
         } else if x >= self.offset.x.saturating_add(width) {
             self.offset.x = self.offset.x.saturating_add(width)
         }
