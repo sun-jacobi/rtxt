@@ -1,5 +1,6 @@
 use crate::{Position, Row};
 use std::fs;
+use std::io::{Error, Write};
 
 #[derive(Default)]
 pub struct Doc {
@@ -18,6 +19,17 @@ impl Doc {
             rows: rows,
             filename: Some(String::from(filename)),
         })
+    }
+
+    pub fn save(&self) -> Result<(), Error> {
+        if let Some(filename) = &self.filename {
+            let mut file = fs::File::create(filename)?;
+            for row in &self.rows {
+                file.write_all(row.as_bytes())?;
+                file.write_all(b"\n")?;
+            }
+        }
+        Ok(())
     }
 
     pub fn row(&self, index: usize) -> Option<&Row> {

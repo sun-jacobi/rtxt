@@ -2,6 +2,7 @@ use crate::terminal::Terminal;
 use crate::Doc;
 use crate::Row;
 use std::env;
+use std::time::{Duration, Instant};
 //use colored::Colorize;
 use termion::event::Key;
 
@@ -24,7 +25,21 @@ pub struct Editor {
     cursor: Position,
     offset: Position,
     document: Doc,
-    status: String,
+    status: StatusMessage,
+}
+
+struct StatusMessage {
+    text: String,
+    time: Instant,
+}
+
+impl From<&str> for StatusMessage {
+    fn from(message: &str) -> Self {
+        Self {
+            text: String::from(message),
+            time: Instant::now(),
+        }
+    }
 }
 
 impl Editor {
@@ -49,7 +64,7 @@ impl Editor {
             cursor: Position::default(),
             offset: Position::default(),
             document: doc,
-            status: status,
+            status: StatusMessage::from(status.as_str()),
         }
     }
     pub fn run(&mut self) {
@@ -69,6 +84,10 @@ impl Editor {
         let pressed_key = Terminal::read_key()?;
         match pressed_key {
             Key::Ctrl('q') => self.should_quit = true,
+            Key::Ctrl('s') => match self.document.save() {
+                Ok(_) => self.status = StatusMessage::from("Successfully saved."),
+                Err(_) => self.status = StatusMessage::from("Failed to saved."),
+            },
             Key::Char(c) => match c {
                 '\n' => {
                     self.document.insert(&self.cursor, c);
@@ -248,11 +267,15 @@ impl Editor {
 
     fn draw_message_bar(&self) {
         let width = self.terminal.size().width as usize;
-        let len = self.status.len();
+        let message = &self.status;
         Terminal::set_bg_color();
         Terminal::set_fg_color();
-        print!("{}", self.status);
-        print!("{}", " ".repeat(width - len));
+        if Instant::now() - message.time < Duration::new(5, 0) {
+            print!("{}", message.text);
+            print!("{}", " ".repeat(width - message.text.len()));
+        } else {
+            print!("{}", " ".repeat(width));
+        }
         Terminal::reset_fg_color();
         Terminal::reset_bg_color();
     }
